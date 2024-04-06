@@ -1,0 +1,23 @@
+plugins {
+    id 'java'
+}
+
+group = 'org.example'
+version = '1.0'
+
+repositories {
+    mavenCentral()
+    google()
+    mavenCentral()
+    mavenLocal()
+    gradlePluginPortal()
+}
+
+dependencies {
+    implementation "io.netty:netty-common:4.1.16.Final"
+    implementation "io.netty:netty-buffer:4.1.16.Final"
+    implementation "io.netty:netty-transport:4.1.16.Final"
+    implementation "io.netty:netty-resolver:4.1.16.Final"
+    implementation "io.netty:netty-handler:4.1.16.Final"
+}
+
