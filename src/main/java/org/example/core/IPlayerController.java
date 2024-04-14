@@ -6,4 +6,8 @@ package org.example.core;
  */
 public interface IPlayerController {
     void sendMessage(String message);
+
+    void setBattleRoom(BattleRoom room);
+
+    String getPlayerName();
 }

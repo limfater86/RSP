@@ -27,4 +27,11 @@ public interface IDecoderProcessor {
      * @param channel
      */
     void registerChannel(Channel channel);
+
+    /**
+     * Отправить сообщение
+     *
+     * @param message
+     */
+    void sendMessage(String message);
 }

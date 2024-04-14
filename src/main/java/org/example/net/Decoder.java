@@ -5,8 +5,12 @@ import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import static org.example.Messages.ON_CONNECT_MESSAGE;
 
 /**
  * @author dperminov
@@ -21,7 +25,7 @@ public class Decoder extends ChannelInboundHandlerAdapter {
 
     public Decoder(IDecoderProcessor processor) {
         this.processor = processor;
-        pattern = Pattern.compile("^[a-zA-Z0-9_.]{1,30}$");
+        pattern = Pattern.compile("[^a-zA-Z0-9_.]");
     }
 
     @Override
@@ -61,6 +65,8 @@ public class Decoder extends ChannelInboundHandlerAdapter {
     public void channelRegistered(ChannelHandlerContext ctx) throws Exception {
         if (ctx == null) throw new IllegalArgumentException("Decoder: channelRegistered: argument ctx was null");
         this.processor.registerChannel(ctx.channel());
+        this.processor.sendMessage(ON_CONNECT_MESSAGE);
+        System.out.println("Client Connected");
     }
 
     @Override
@@ -79,9 +85,13 @@ public class Decoder extends ChannelInboundHandlerAdapter {
             ByteBuf buf = Unpooled.buffer(size);
             buf.writeBytes(buffer, size);
 
-            String message = buf.toString();
+            String message = new String(buf.array(), StandardCharsets.UTF_8);
+            buf.release();
+
             Matcher matcher = pattern.matcher(message);
             String result = matcher.replaceAll("");
+
+            if (result.isEmpty()) return true;
 
             processor.process(result, ctx.channel());
 

@@ -8,14 +8,11 @@ import org.example.ServerProcessor;
  */
 public interface IBattleService {
     boolean registerNewPlayer(String playerName, ServerProcessor playerProcessor);
+    void removePlayer(String playerName);
 
     void startBattle(String playerName);
 
-    void stopBattle(String playerName, long battleId);
+    void stopBattle(BattleRoom room);
 
-    void hitRock(String playerName, long battleId);
-
-    void hitScissors(String playerName, long battleId);
-
-    void hitPaper(String playerName, long battleId);
+    void endBattle(BattleRoom room);
 }

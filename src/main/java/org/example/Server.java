@@ -17,17 +17,13 @@ import org.example.net.Encoder;
 import java.net.Inet4Address;
 import java.util.concurrent.TimeUnit;
 
+import static org.example.Config.*;
+
 /**
  * @author dperminov
  * @since 06.04.2024
  */
 public class Server {
-    private final String SERVER_ADDRESS = "127.0.0.1";
-    private final int SERVER_PORT = 8982;
-    private final int BOS_THREADS = 8;
-    private final int WORKER_THREADS = 64;
-    private final int CONNECTION_IDLE_TIMEOUT_SECONDS = 15;
-
     private boolean isReady = false;
 
     public void run(IBattleService battleService) throws InterruptedException {
@@ -58,6 +54,11 @@ public class Server {
             setReady(true);
 
             future.sync();
+
+            while (isReady){
+
+            }
+
             future.channel().closeFuture();
 
             setReady(false);

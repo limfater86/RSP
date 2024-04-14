@@ -19,5 +19,6 @@ dependencies {
     implementation "io.netty:netty-transport:4.1.16.Final"
     implementation "io.netty:netty-resolver:4.1.16.Final"
     implementation "io.netty:netty-handler:4.1.16.Final"
+    implementation 'org.apache.commons:commons-pool2:2.12.0'
 }
 
