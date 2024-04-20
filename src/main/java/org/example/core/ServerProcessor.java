@@ -1,12 +1,8 @@
-package org.example;
+package org.example.core;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
-import org.example.core.BattleRoom;
-import org.example.core.HitType;
-import org.example.core.IBattleService;
-import org.example.core.IPlayerController;
 import org.example.net.IDecoderProcessor;
 
 import java.util.HashMap;
@@ -81,7 +77,7 @@ public class ServerProcessor implements IDecoderProcessor, IPlayerController {
 
     private boolean checkGame() {
         if (battleRoom == null) {
-            sendResponse("The Game is not running. First start the Game");
+            sendResponse(GAME_NOT_STARTED_ERROR_MESSAGE);
             return false;
         }
         return true;
@@ -91,14 +87,17 @@ public class ServerProcessor implements IDecoderProcessor, IPlayerController {
         return playerName;
     }
 
+    @Override
+    public void setPlayerName(String name) {
+        playerName = name;
+    }
+
     public void setBattleRoom(BattleRoom battleRoom) {
         this.battleRoom = battleRoom;
     }
 
     private void execute(Channel channel, String command) {
         if (command == null || command.isEmpty()) return;
-
-        System.out.println(command);
 
         Runnable runnable = methodsMap.get(command);
         if (runnable != null) {
@@ -111,11 +110,11 @@ public class ServerProcessor implements IDecoderProcessor, IPlayerController {
     private void sendResponse(String message) {
         sendResponse(this.channel, message);
     }
+
     private void sendResponse(Channel channel, String message) {
         if (channel == null) return;
 
         if (channel.isActive()) {
-            System.out.println(message);
             ByteBuf buffer = Unpooled.buffer();
             buffer.writeBytes(message.getBytes());
             channel.write(buffer);
@@ -125,14 +124,8 @@ public class ServerProcessor implements IDecoderProcessor, IPlayerController {
 
     @Override
     public void process(String message, Channel channel) {
-        System.out.println("input message: " + message);
         if (playerName == null || playerName.isEmpty()) {
-            playerName = message;
-            if (battleService.registerNewPlayer(playerName, this)) {
-                sendResponse(channel, ON_REGISTER_PLAYER_MESSAGE);
-            } else {
-                sendResponse(channel, PLAYER_NAME_ERROR_MESSAGE);
-            }
+            battleService.registerNewPlayer(message, this);
         } else {
             execute(channel, message);
         }
@@ -147,9 +140,9 @@ public class ServerProcessor implements IDecoderProcessor, IPlayerController {
     public void release() {
         if (battleRoom != null) {
             battleService.stopBattle(battleRoom);
-            battleService.removePlayer(playerName);
             battleRoom = null;
         }
+        battleService.removePlayer(playerName);
     }
 
     @Override

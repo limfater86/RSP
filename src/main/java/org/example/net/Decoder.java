@@ -5,11 +5,11 @@ import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static org.example.ExceptionMessage.*;
 import static org.example.Messages.ON_CONNECT_MESSAGE;
 
 /**
@@ -17,7 +17,6 @@ import static org.example.Messages.ON_CONNECT_MESSAGE;
  * @since 06.04.2024
  */
 public class Decoder extends ChannelInboundHandlerAdapter {
-    public static final String TAG = Decoder.class.getSimpleName();
     private final IDecoderProcessor processor;
     private ByteBuf buffer = null;
     private final Pattern pattern;
@@ -40,8 +39,8 @@ public class Decoder extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        if (ctx == null) throw new IllegalArgumentException("Decoder: channelRead: argument ctx was null");
-        if (msg == null) throw new IllegalArgumentException("Decoder: channelRead: msg ctx was null");
+        if (ctx == null) throw new IllegalArgumentException(DECODER_READ_CTX_ERROR_MESSAGE);
+        if (msg == null) throw new IllegalArgumentException(DECODER_READ_MSG_ERROR_MESSAGE);
         if (msg instanceof ByteBuf) {
             ByteBuf message = (ByteBuf) msg;
             buffer.writeBytes(message);
@@ -53,7 +52,7 @@ public class Decoder extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
-        if (ctx == null) throw new IllegalArgumentException("Decoder: channelReadComplete: argument ctx was null");
+        if (ctx == null) throw new IllegalArgumentException(DECODER_REGISTER_CTX_ERROR_MESSAGE);
 
         if (buffer.isReadable()) {
             boolean result = parseData(ctx);
@@ -63,10 +62,9 @@ public class Decoder extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelRegistered(ChannelHandlerContext ctx) throws Exception {
-        if (ctx == null) throw new IllegalArgumentException("Decoder: channelRegistered: argument ctx was null");
+        if (ctx == null) throw new IllegalArgumentException(DECODER_READ_COMPLETE_CTX_ERROR_MESSAGE);
         this.processor.registerChannel(ctx.channel());
         this.processor.sendMessage(ON_CONNECT_MESSAGE);
-        System.out.println("Client Connected");
     }
 
     @Override

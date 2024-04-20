@@ -10,4 +10,6 @@ public interface IPlayerController {
     void setBattleRoom(BattleRoom room);
 
     String getPlayerName();
+
+    void setPlayerName(String name);
 }

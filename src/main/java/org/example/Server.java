@@ -10,6 +10,7 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.timeout.IdleStateHandler;
 import org.example.core.IBattleService;
+import org.example.core.ServerProcessor;
 import org.example.net.AcceptConnectionHandler;
 import org.example.net.Decoder;
 import org.example.net.Encoder;
@@ -55,7 +56,7 @@ public class Server {
 
             future.sync();
 
-            while (isReady){
+            while (isReady) {
 
             }
 

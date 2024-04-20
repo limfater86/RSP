@@ -17,4 +17,5 @@ public class Messages {
     public static final String LOSE_BATTLE_MESSAGE = "The Game was END. You LOSE! To start new Game enter 'start'.";
     public static final String DRAW_BATTLE_MESSAGE = "DRAW!. Next round. Enter Your hit - rock, scissors, or paper.";
     public static final String HIT_ERROR_MESSAGE = "You Already hit. You can't change hit or hit twice.";
+    public static final String GAME_NOT_STARTED_ERROR_MESSAGE = "The Game is not running. First start the Game";
 }

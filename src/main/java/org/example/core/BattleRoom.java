@@ -1,8 +1,11 @@
 package org.example.core;
 
 
+import org.example.syncable.Syncable;
+
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import static org.example.Messages.*;
 
@@ -14,6 +17,7 @@ public class BattleRoom {
     private final HashMap<String, IPlayerController> playerControllers;
     private final HashMap<String, HitType> playersHits;
     private IBattleService battleService;
+    private final ReentrantReadWriteLock reentrantLock = new ReentrantReadWriteLock();
 
     public BattleRoom() {
         playerControllers = new HashMap<>();
@@ -35,12 +39,20 @@ public class BattleRoom {
     }
 
     public void hit(String playerName, HitType hit) {
+        Syncable.S.syncWriteAndRun(reentrantLock, () -> internalHit(playerName, hit));
+
+        if (playersHits.size() > 1) {
+            Syncable.S.syncReadAndRun(reentrantLock, this::checkWinner);
+            handleEndGame();
+        }
+    }
+
+    private void internalHit(String playerName, HitType hit) {
         if (playersHits.containsKey(playerName)) {
             playerControllers.get(playerName).sendMessage(HIT_ERROR_MESSAGE);
             return;
         }
         playersHits.put(playerName, hit);
-        if (playersHits.size() > 1) checkWinner();
     }
 
     public void stopBattle() {
@@ -67,13 +79,11 @@ public class BattleRoom {
 
         if (firstPlayerHit.isBeat(secondPlayerHit)) {
             firstPlayer.sendMessage(WIN_BATTLE_MESSAGE);
-            firstPlayer.sendMessage(LOSE_BATTLE_MESSAGE);
+            secondPlayer.sendMessage(LOSE_BATTLE_MESSAGE);
         } else {
             firstPlayer.sendMessage(LOSE_BATTLE_MESSAGE);
-            firstPlayer.sendMessage(WIN_BATTLE_MESSAGE);
+            secondPlayer.sendMessage(WIN_BATTLE_MESSAGE);
         }
-
-        handleEndGame();
     }
 
     private void handleEndGame() {

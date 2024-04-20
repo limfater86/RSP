@@ -2,10 +2,12 @@ package org.example.core;
 
 import org.apache.commons.pool2.ObjectPool;
 import org.apache.commons.pool2.impl.GenericObjectPool;
-import org.example.ServerProcessor;
+import org.example.syncable.Syncable;
 
 import java.util.*;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import static org.example.ExceptionMessage.*;
 import static org.example.Messages.*;
 
 /**
@@ -16,6 +18,7 @@ public class BattleService implements IBattleService {
     private final HashMap<String, IPlayerController> players;
     private final LinkedHashSet<String> playersReadyToBattle;
     private final ObjectPool<BattleRoom> battleRooms;
+    private final ReentrantReadWriteLock reentrantLock = new ReentrantReadWriteLock();
 
     public BattleService() {
         players = new HashMap<>();
@@ -24,22 +27,33 @@ public class BattleService implements IBattleService {
     }
 
     @Override
-    public boolean registerNewPlayer(String playerName, ServerProcessor playerProcessor) {
-        if (players.containsKey(playerName)) return false;
+    public void registerNewPlayer(String playerName, ServerProcessor playerProcessor) {
+        Syncable.S.syncWriteAndRun(reentrantLock, () -> {
+            if (players.containsKey(playerName)) {
+                playerProcessor.sendMessage(PLAYER_NAME_ERROR_MESSAGE);
+                return;
+            }
 
-        players.put(playerName, playerProcessor);
-
-        return true;
+            players.put(playerName, playerProcessor);
+            playerProcessor.setPlayerName(playerName);
+            playerProcessor.sendMessage(ON_REGISTER_PLAYER_MESSAGE);
+        });
     }
 
     @Override
     public void removePlayer(String playerName) {
-        players.remove(playerName);
-        playersReadyToBattle.remove(playerName);
+        Syncable.S.syncWriteAndRun(reentrantLock, () -> {
+            players.remove(playerName);
+            playersReadyToBattle.remove(playerName);
+        });
     }
 
     @Override
     public void startBattle(String playerName) {
+        Syncable.S.syncWriteAndRun(reentrantLock, () -> internalStartBattle(playerName));
+    }
+
+    private void internalStartBattle(String playerName) {
         if (playersReadyToBattle.isEmpty()) {
             playersReadyToBattle.add(playerName);
             players.get(playerName).sendMessage(WAITING_OPPONENT_MESSAGE);
@@ -56,13 +70,13 @@ public class BattleService implements IBattleService {
         iterator.remove();
         IPlayerController opponent = players.get(opponentName);
 
-        if (opponent == null) throw new RuntimeException("Opponent is null");
+        if (opponent == null) throw new RuntimeException(OPPONENT_ERROR_MESSAGE);
 
         BattleRoom room = null;
         try {
             room = battleRooms.borrowObject();
         } catch (Exception e) {
-            throw new RuntimeException("Unable to borrow buffer from pool" + e);
+            throw new RuntimeException(POOL_ERROR_MESSAGE + e);
         }
 
         room.addPlayer(playerName, player);
