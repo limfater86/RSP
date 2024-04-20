@@ -1,6 +1,4 @@
-plugins {
-    id 'java'
-}
+apply plugin: 'java'
 
 group = 'org.example'
 version = '1.0'
@@ -8,7 +6,6 @@ version = '1.0'
 repositories {
     mavenCentral()
     google()
-    mavenCentral()
     mavenLocal()
     gradlePluginPortal()
 }
@@ -20,5 +17,10 @@ dependencies {
     implementation "io.netty:netty-resolver:4.1.16.Final"
     implementation "io.netty:netty-handler:4.1.16.Final"
     implementation 'org.apache.commons:commons-pool2:2.12.0'
+}
+
+jar{
+    archiveBaseName.set("${project.name}")
+    archiveVersion.set("${project.version}")
 }
 
